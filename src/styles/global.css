@@ -1,0 +1,563 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Palette — monochromatic editorial (permanent dark theme) */
+  --color-ink: #151515;
+  --color-ink-deep: #101010;
+  --color-placeholder: #1c1c1c;
+  --color-paper: #f5f5f5;
+  --color-paper-dim: #a0a0a0;
+  --color-muted: #777777;
+  --color-line: #383838;
+  --color-hover: #ffffff;
+
+  /* Type families */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif: 'Cormorant Garamond', ui-serif, Georgia, 'Times New Roman', serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  /* Portrait photographs are never filtered. */
+  figure img,
+  video[role="img"],
+  .hero-portrait {
+    filter: none;
+  }
+
+  ::selection {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--color-paper);
+    outline-offset: 3px;
+  }
+
+  section[id] {
+    scroll-margin-top: 24px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Layout ------------------------------------------------------------- */
+  .shell {
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
+    padding-inline: clamp(20px, 4.5vw, 90px);
+  }
+
+  /* Each section pads itself; two adjacent sections therefore stack two paddings.
+     Sized so the combined gap stays one intentional editorial break:
+     ~88px mobile → ~144px @1440 → ~180px @1920. */
+  .section-y {
+    padding-block: clamp(44px, 5vw, 90px);
+  }
+
+  .hairline {
+    border-top: 1px solid var(--color-line);
+  }
+
+  /* Editorial type scale ----------------------------------------------- */
+  .display-hero {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(3.375rem, 10.8vw, 9.375rem); /* 54 → 150 */
+    line-height: 0.9;
+    letter-spacing: -0.035em;
+  }
+
+  .display-major {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(3rem, 6.6vw, 6.875rem); /* 48 → 110 */
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+  }
+
+  .display-section {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(2.125rem, 4.6vw, 4.6875rem); /* 34 → 75 */
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .display-row {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 3.2vw, 3rem); /* 28 → 48 */
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  .body-copy {
+    font-size: clamp(0.875rem, 0.4rem + 0.75vw, 1.125rem); /* 14 → 18 */
+    line-height: 1.7;
+  }
+
+  .label {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: clamp(0.625rem, 0.5rem + 0.15vw, 0.75rem); /* 10 → 12 */
+    line-height: 1.5;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  /* Interactions -------------------------------------------------------- */
+  .link-underline {
+    position: relative;
+    display: inline-block;
+  }
+
+  .link-underline::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    width: 100%;
+    height: 1px;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .link-underline:hover::after,
+  .link-underline:focus-visible::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 15px 28px;
+    border: 1px solid var(--color-line);
+    background-color: transparent;
+    color: var(--color-paper);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    transition:
+      border-color 0.35s ease,
+      color 0.35s ease;
+  }
+
+  .btn-outline:hover,
+  .btn-outline:focus-visible {
+    border-color: var(--color-paper);
+    color: var(--color-hover);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Bird doodle — scroll-controlled flight (added feature).
+ * Transform-only animation; the bird element itself is moved by GSAP.
+ * ------------------------------------------------------------------ */
+.bird-fly {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  width: clamp(32px, 3.6vw, 46px);
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+  /* Pivot near the feet so take-off / landing rotation feels anchored. */
+  transform-origin: 50% 81.5%;
+}
+
+.bird-fly > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* Wings — shared setup ---------------------------------------------- */
+.bird-wing-near,
+.bird-wing-far,
+.bird-head,
+.bird-eye {
+  transform-box: view-box;
+}
+
+/* Flapping (in flight) */
+@keyframes bird-flap {
+  0%,
+  100% {
+    transform: rotate(-38deg);
+  }
+  50% {
+    transform: rotate(26deg);
+  }
+}
+
+@keyframes bird-flap-far {
+  0%,
+  100% {
+    transform: rotate(-28deg);
+  }
+  50% {
+    transform: rotate(16deg);
+  }
+}
+
+/* Slower, smaller flaps while gliding in for the landing */
+@keyframes bird-flap-land {
+  0%,
+  100% {
+    transform: rotate(-20deg);
+  }
+  50% {
+    transform: rotate(12deg);
+  }
+}
+
+@keyframes bird-flap-land-far {
+  0%,
+  100% {
+    transform: rotate(-14deg);
+  }
+  50% {
+    transform: rotate(7deg);
+  }
+}
+
+.is-flying .bird-wing-near {
+  transform-origin: 44px 30px;
+  animation: bird-flap 0.5s ease-in-out infinite;
+}
+
+.is-flying .bird-wing-far {
+  transform-origin: 46px 28px;
+  animation: bird-flap-far 0.5s ease-in-out infinite;
+  animation-delay: -0.13s;
+}
+
+.is-landing .bird-wing-near {
+  transform-origin: 44px 30px;
+  animation: bird-flap-land 0.78s ease-in-out infinite;
+}
+
+.is-landing .bird-wing-far {
+  transform-origin: 46px 28px;
+  animation: bird-flap-land-far 0.78s ease-in-out infinite;
+  animation-delay: -0.2s;
+}
+
+/* Take-off: a broad, slower beat as the wings spread and lift */
+.is-takingoff .bird-wing-near {
+  transform-origin: 44px 30px;
+  animation: bird-flap-takeoff 0.66s ease-in-out infinite;
+}
+
+.is-takingoff .bird-wing-far {
+  transform-origin: 46px 28px;
+  animation: bird-flap-takeoff-far 0.66s ease-in-out infinite;
+  animation-delay: -0.16s;
+}
+
+/* Feet tuck away once airborne (including take-off) */
+.is-takingoff .bird-feet {
+  opacity: 0;
+}
+
+@keyframes bird-flap-takeoff {
+  0%,
+  100% {
+    transform: rotate(-44deg);
+  }
+  50% {
+    transform: rotate(30deg);
+  }
+}
+
+@keyframes bird-flap-takeoff-far {
+  0%,
+  100% {
+    transform: rotate(-34deg);
+  }
+  50% {
+    transform: rotate(20deg);
+  }
+}
+
+/* Folded (perched / seated) */
+.is-perched .bird-wing-near,
+.is-landed .bird-wing-near {
+  transform: rotate(58deg);
+}
+
+.is-perched .bird-wing-far,
+.is-landed .bird-wing-far {
+  transform: rotate(50deg);
+}
+
+/* Feet are tucked away mid-air, visible on take-off & landing */
+.is-flying .bird-feet {
+  opacity: 0;
+}
+
+/* Motion trail only while moving */
+.bird-trail {
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+.is-flying .bird-trail {
+  opacity: 0.55;
+}
+
+.is-landing .bird-trail {
+  opacity: 0.25;
+}
+
+/* Idle life while resting: breathing + a rare glance + a blink */
+@keyframes bird-breathe {
+  0%,
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(0.6px) scaleY(1.02);
+  }
+}
+
+@keyframes bird-glance {
+  0%,
+  70%,
+  100% {
+    transform: rotate(0deg);
+  }
+  80% {
+    transform: rotate(-5deg);
+  }
+  90% {
+    transform: rotate(1.5deg);
+  }
+}
+
+@keyframes bird-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.08);
+  }
+}
+
+.is-perched .bird-torso,
+.is-landed .bird-torso {
+  transform-box: view-box;
+  transform-origin: 42px 46px;
+  animation: bird-breathe 3.8s ease-in-out infinite;
+}
+
+.is-perched .bird-head,
+.is-landed .bird-head {
+  transform-origin: 58px 24px;
+  animation: bird-glance 6.5s ease-in-out infinite;
+}
+
+.is-perched .bird-eye,
+.is-landed .bird-eye {
+  transform-origin: 60.5px 22px;
+  animation: bird-blink 5.2s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------------ *
+ * Background flock — System A: a few small birds drifting near the tree.
+ * Fully independent of scroll; pure CSS keyframes (GPU transforms only).
+ * Each bird runs its own path + flap timing so they never sync up.
+ * ------------------------------------------------------------------ */
+.bird-flock {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 230%;
+  height: 190%;
+  transform: translate(-54%, -78%);
+  pointer-events: none;
+  user-select: none;
+  overflow: visible;
+}
+
+.flock-bird {
+  position: absolute;
+  will-change: transform;
+  transform-box: view-box;
+}
+
+.flock-bird > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* --- gentle, curved flight paths (small ellipses around the tree) --- */
+@keyframes flock-path-1 {
+  0% {
+    transform: translate(0px, 0px) rotate(-4deg);
+  }
+  25% {
+    transform: translate(16px, -9px) rotate(3deg);
+  }
+  50% {
+    transform: translate(32px, 1px) rotate(7deg);
+  }
+  75% {
+    transform: translate(14px, 11px) rotate(-1deg);
+  }
+  100% {
+    transform: translate(0px, 0px) rotate(-4deg);
+  }
+}
+
+@keyframes flock-path-2 {
+  0% {
+    transform: translate(0px, 0px) rotate(3deg);
+  }
+  30% {
+    transform: translate(-14px, -12px) rotate(-4deg);
+  }
+  60% {
+    transform: translate(-28px, 3px) rotate(-8deg);
+  }
+  85% {
+    transform: translate(-10px, 9px) rotate(2deg);
+  }
+  100% {
+    transform: translate(0px, 0px) rotate(3deg);
+  }
+}
+
+/* A slow, shallow glide — mostly horizontal with a gentle height change */
+@keyframes flock-path-3 {
+  0% {
+    transform: translate(-18px, 6px) rotate(-6deg);
+  }
+  50% {
+    transform: translate(18px, -7px) rotate(6deg);
+  }
+  100% {
+    transform: translate(-18px, 6px) rotate(-6deg);
+  }
+}
+
+/* --- soft wing beats --- */
+@keyframes flock-flap {
+  0%,
+  100% {
+    transform: rotate(-16deg);
+  }
+  50% {
+    transform: rotate(24deg);
+  }
+}
+
+@keyframes flock-flap-slow {
+  0%,
+  100% {
+    transform: rotate(-11deg);
+  }
+  50% {
+    transform: rotate(17deg);
+  }
+}
+
+.flock-wing {
+  transform-box: view-box;
+  transform-origin: 13px 8px;
+}
+
+.flock-bird .flock-wing {
+  animation: flock-flap 0.62s ease-in-out infinite;
+}
+
+/* Each bird drifts on its own path & timing → desynchronised motion */
+.flock-bird--1 {
+  animation: flock-path-1 8.5s ease-in-out infinite;
+}
+.flock-bird--2 {
+  animation: flock-path-2 11s ease-in-out infinite;
+  animation-delay: -3.5s;
+}
+.flock-bird--3 {
+  animation: flock-path-3 13.5s ease-in-out infinite;
+  animation-delay: -6s;
+}
+
+.flock-bird--1 .flock-wing {
+  animation-duration: 0.58s;
+}
+.flock-bird--2 .flock-wing {
+  animation: flock-flap-slow 0.72s ease-in-out infinite;
+  animation-delay: -0.24s;
+}
+.flock-bird--3 .flock-wing {
+  animation: flock-flap-slow 0.86s ease-in-out infinite;
+  animation-delay: -0.4s;
+}
+
+/* Pause when the tree scrolls out of view (saves resources) */
+.bird-flock.is-paused .flock-bird,
+.bird-flock.is-paused .flock-wing {
+  animation-play-state: paused;
+}
+
+/* Smaller flight radius + birds on compact screens */
+@media (max-width: 640px) {
+  .bird-flock {
+    transform: translate(-54%, -78%) scale(0.62);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flock-bird,
+  .flock-wing {
+    animation: none !important;
+  }
+}
